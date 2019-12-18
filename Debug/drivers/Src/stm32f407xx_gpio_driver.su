@@ -1,0 +1,11 @@
+stm32f407xx_gpio_driver.c:28:6:GPIO_PCLK_Control	16	static
+stm32f407xx_gpio_driver.c:128:6:GPIO_Init	32	static
+stm32f407xx_gpio_driver.c:234:6:GPIO_DeInit	16	static
+stm32f407xx_gpio_driver.c:291:9:GPIO_Read_Pin	24	static
+stm32f407xx_gpio_driver.c:312:10:GPIO_Read_Port	24	static
+stm32f407xx_gpio_driver.c:334:6:GPIO_Write_Pin	16	static
+stm32f407xx_gpio_driver.c:359:6:GPIO_Write_Port	16	static
+stm32f407xx_gpio_driver.c:378:6:GPIO_Toggle_Pin	16	static
+stm32f407xx_gpio_driver.c:400:6:GPIO_IRQITConfig	16	static
+stm32f407xx_gpio_driver.c:448:6:GPIO_IRQPriorityConfig	24	static
+stm32f407xx_gpio_driver.c:470:6:GPIO_IRQ_Handling	16	static
