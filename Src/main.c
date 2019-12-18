@@ -7,65 +7,113 @@
   ******************************************************************************
 */
 
-#include "stm32f407xx.h"
-#include <stdio.h>
 #include <string.h>
+#include "stm32f407xx.h"
 
 
-void Delay(void)
+void Delay(uint32_t counter)
 {
-	for(uint32_t i=0;i<500000;i++);
+	for(uint32_t i=0;i<counter;i++);
 }
 
+void OutputTest_PP(GPIO_Handle_t GPIO_Handle,GPIO_TypeDef *pGPIOx,uint8_t GPIO_PinNumber)
+{
+	GPIO_Handle.pGPIOx = pGPIOx;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinNumber = GPIO_PinNumber;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OP_SPEED_LOW;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PuPdControl = GPIO_NO_PUPD;
 
+	GPIO_Init(&GPIO_Handle);
+}
 
+void OutputTest_OD(GPIO_Handle_t GPIO_Handle,GPIO_TypeDef *pGPIOx,uint8_t GPIO_PinNumber)
+{
+	GPIO_Handle.pGPIOx = pGPIOx;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinNumber = GPIO_PinNumber;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_OD;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OP_SPEED_LOW;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PuPdControl = GPIO_PIN_PU;
+
+	GPIO_Init(&GPIO_Handle);
+}
+
+void InputTestIT(GPIO_Handle_t GPIO_Handle,GPIO_TypeDef *pGPIOx,uint8_t GPIO_PinNumber)
+{
+	GPIO_Handle.pGPIOx = pGPIOx;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinNumber = GPIO_PinNumber;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_FT;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OP_SPEED_LOW;
+	GPIO_Handle.GPIO_PinConfig.GPIO_PuPdControl = GPIO_NO_PUPD; //On discovery board there is a external pull_down resistor on PA0
+																//So there is no need to internal PD resistor
+
+	GPIO_Init(&GPIO_Handle);
+
+}
 int main(void)
 {
-	GPIO_Handle_t GPIOLED;
-
-	memset(&GPIOLED,0,sizeof(GPIOLED));
-
-	GPIOLED.pGPIOx = GPIOD;
-	GPIOLED.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_12;
-	GPIOLED.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
-	GPIOLED.GPIO_PinConfig.GPIO_PinOPType = GPIO_OP_TYPE_PP;
-	GPIOLED.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OP_SPEED_LOW;
-	GPIOLED.GPIO_PinConfig.GPIO_PuPdControl = GPIO_NO_PUPD;
-
+	//Enable Clock for GPIOD
+	//On STM32F4 DISCOVERY PD12->Green_LED PD13->Orange_LED PD14->Red_LED PD15->Blue_LED
 	GPIO_PCLK_Control(GPIOD, ENABLE);
 
-	GPIO_Init(&GPIOLED);
-
-	GPIO_Handle_t Button;
-
-	memset(&Button,0,sizeof(Button));
-
-	Button.pGPIOx = GPIOA;
-	Button.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_0;
-	Button.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IT_FT;
-	Button.GPIO_PinConfig.GPIO_PinSpeed = GPIO_OP_SPEED_LOW;
-	Button.GPIO_PinConfig.GPIO_PuPdControl = GPIO_NO_PUPD;
-
+	//Enable Clock for GPIOA
+	//On STM32F4 DISCOVERY PA0->User_Button
 	GPIO_PCLK_Control(GPIOA, ENABLE);
 
-	GPIO_Init(&Button);
+	GPIO_Handle_t GPIO_OUT_PP;
+
+	//Reset all elements in GPIO_OUT_PP
+	memset(&GPIO_OUT_PP,0,sizeof(GPIO_OUT_PP));
+
+	//Configure GPIO PORT D PIN 12 OUTPUT TYPE PUSH_PULL
+	OutputTest_PP(GPIO_OUT_PP, GPIOD, GPIO_PIN_NO_12);
+
+	GPIO_Handle_t GPIO_OUT_OD;
+
+	//Reset all elements in GPIO_OUT_PP
+	memset(&GPIO_OUT_OD,0,sizeof(GPIO_OUT_OD));
+
+	//Configure GPIO PORT D PIN 12 OUTPUT TYPE OPEN_DRAIN
+	OutputTest_OD(GPIO_OUT_OD, GPIOD, GPIO_PIN_NO_13);
+
+
+	GPIO_Handle_t GPIO_IN_IT;
+
+	//Reset all elements in GPIO_OUT_PP
+	memset(&GPIO_IN_IT,0,sizeof(GPIO_IN_IT));
+
+	//Configure GPIO PORT A PIN 0 INPUT
+	//PA0 Triggers the EXTI0 Interrupt
+	InputTestIT(GPIO_IN_IT, GPIOA, GPIO_PIN_NO_0);
+
+	GPIO_Handle_t GPIO_OUT_IT;
+
+	//Reset all elements in GPIO_OUT_PP
+	memset(&GPIO_OUT_IT,0,sizeof(GPIO_OUT_IT));
+
+	//Configure GPIO PORT D PIN 14 OUTPUT TYPE PUSH_PULL
+	OutputTest_PP(GPIO_OUT_IT, GPIOD, GPIO_PIN_NO_14);		//This led will toggle with GPIO Interrupt
+
 
 	GPIO_IRQPriorityConfig(EXTI0_IRQn, NVIC_IRQ_PRI5);
 	GPIO_IRQITConfig(EXTI0_IRQn, ENABLE);
 
 	for(;;)
 	{
-
+		GPIO_Toggle_Pin(GPIOD, GPIO_PIN_NO_12);
+		GPIO_Toggle_Pin(GPIOD, GPIO_PIN_NO_13);
+		Delay(500000);
 	}
 }
 
-
 void EXTI0_IRQHandler(void)
 {
-	Delay();
 
+	Delay(50000/2);		//Delay avoids debouncing
 	GPIO_IRQ_Handling(GPIO_PIN_NO_0);
+	GPIO_Toggle_Pin(GPIOD, GPIO_PIN_NO_14);
 
-	GPIO_Toggle_Pin(GPIOD, GPIO_PIN_NO_12);
 
 }
