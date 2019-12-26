@@ -130,6 +130,8 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
 
 	uint32_t temp =0;
 
+	//Enable Clock for pGPIOx
+	GPIO_PCLK_Control(pGPIOHandle->pGPIOx, ENABLE);
 	//GPIO pin mode configuration
 	if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode <= GPIO_MODE_ANALOG)
 	{

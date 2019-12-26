@@ -54,13 +54,8 @@ void InputTestIT(GPIO_Handle_t GPIO_Handle,GPIO_TypeDef *pGPIOx,uint8_t GPIO_Pin
 }
 int main(void)
 {
-	//Enable Clock for GPIOD
 	//On STM32F4 DISCOVERY PD12->Green_LED PD13->Orange_LED PD14->Red_LED PD15->Blue_LED
-	GPIO_PCLK_Control(GPIOD, ENABLE);
-
-	//Enable Clock for GPIOA
 	//On STM32F4 DISCOVERY PA0->User_Button
-	GPIO_PCLK_Control(GPIOA, ENABLE);
 
 	GPIO_Handle_t GPIO_OUT_PP;
 
